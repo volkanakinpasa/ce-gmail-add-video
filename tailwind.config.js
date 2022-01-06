@@ -1,13 +1,7 @@
 /* eslint-disable */
 module.exports = {
   theme: {
-    screens: {
-      // xs: '375px',
-      // sm: '576px',
-      // md: '768px',
-      // lg: '992px',
-      // xl: '1200px',
-    },
+    screens: {},
     maxWidth: {
       15: '15rem',
       700: '700px',

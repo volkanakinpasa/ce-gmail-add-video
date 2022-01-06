@@ -1,10 +1,12 @@
 import '../../css/index.css';
 import './option.css';
 
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC } from 'react';
+
+import Form from '../content/form/Index';
 
 const Option: FC = () => {
-  return null;
+  return <Form />;
 };
 
 export default Option;

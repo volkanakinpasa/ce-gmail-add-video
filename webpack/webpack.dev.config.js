@@ -1,19 +1,23 @@
 const { merge } = require('webpack-merge');
 const common = require('./webpack.common.config');
-const path = require('path');
-
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-
+const CopyPlugin = require('copy-webpack-plugin');
 const options = {
+  watchOptions: {
+    poll: true,
+    ignored: /node_modules/,
+  },
   mode: process.env.NODE_ENV || 'development',
   devtool: 'inline-source-map',
 
   plugins: [
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, '..', 'src', 'dev.html'),
-      filename: 'dev.html',
-      chunks: ['content'],
-    })
+    new CopyPlugin({
+      patterns: [
+        {
+          from: 'src/manifest.json',
+          to: 'manifest.json',
+        },
+      ],
+    }),
   ],
 };
 

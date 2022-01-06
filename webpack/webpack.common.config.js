@@ -1,10 +1,7 @@
 const path = require('path');
 const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-
-const WriteFilePlugin = require('write-file-webpack-plugin');
 
 const publicPath = '/';
 
@@ -19,6 +16,7 @@ const config = {
     options: path.join(__dirname, '..', 'src', 'js', 'option', 'index.tsx'),
     background: path.join(__dirname, '..', 'src', 'js', 'background.ts'),
     content: path.join(__dirname, '..', 'src', 'js', 'content', 'content.tsx'),
+    form: path.join(__dirname, '..', 'src', 'js', 'content', 'form.tsx'),
   },
   target: 'web',
   output,
@@ -63,8 +61,8 @@ const config = {
   },
   plugins: [
     // expose and write the allowed env vars on the compiled bundle
-    new ProgressBarPlugin(),
-    new CleanWebpackPlugin(),
+    // new CleanWebpackPlugin(),
+    // new ProgressBarPlugin(),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, '..', 'src', 'options.html'),
       filename: 'options.html',
@@ -75,7 +73,20 @@ const config = {
       filename: 'background.html',
       chunks: ['background'],
     }),
-    new WriteFilePlugin(),
+    // new WriteFilePlugin(),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, '..', 'src', 'js', 'content', 'form.html'),
+      filename: 'form.html',
+      chunks: ['form'],
+    }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: 'src/resources',
+          to: '',
+        },
+      ],
+    }),
     // new BundleAnalyzerPlugin(),
   ],
 };

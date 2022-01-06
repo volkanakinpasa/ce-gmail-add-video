@@ -1,6 +1,6 @@
-import '../img/16.png';
-import '../img/48.png';
-import '../img/128.png';
+// import '../img/16.png';
+// import '../img/48.png';
+// import '../img/128.png';
 
 const sendMessageToContentScript = (message: any) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

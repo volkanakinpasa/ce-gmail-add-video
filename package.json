@@ -38,6 +38,7 @@
     "babel-preset-preact": "^2.0.0",
     "classnames": "^2.2.6",
     "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^10.2.0",
     "core-js": "^3.8.3",
     "css-loader": "^3.6.0",
     "eslint": "^7.16.0",

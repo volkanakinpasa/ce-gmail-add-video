@@ -16,12 +16,8 @@
   "background": {
     "page": "background.html"
   },
-  "icons": {
-    "16": "media/16.png",
-    "48": "media/48.png",
-    "128": "media/128.png"
-  },
-  "web_accessible_resources": ["media/*"],
+
+  "web_accessible_resources": ["*"],
   "externally_connectable": {
     "matches": []
   },
