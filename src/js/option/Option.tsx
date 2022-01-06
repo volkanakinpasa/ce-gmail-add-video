@@ -1,4 +1,3 @@
-import '../../css/index.css';
 import './option.css';
 
 import React, { FC } from 'react';

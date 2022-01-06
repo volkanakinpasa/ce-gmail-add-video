@@ -1,15 +1,22 @@
-import { DOMAINS, ENVIRONMENTS, WEB_SITE_URL } from '../../../utils';
+const ENVIRONMENTS = {
+  PRODUCTION: 'production',
+  DEVELOPMENT: 'development',
+};
 
-const URLS = {
-  EXTENSION_NAME: 'EXTENSION NAME',
+const API_URLS = {
+  PRODUCTION: 'https://docs.storm121.com/api',
+  DEVELOPMENT: 'http://localhost:5000',
+};
 
-  BASE_URL:
-    // eslint-disable-next-line no-undef
-    process.env.NODE_ENV === 'production'
-      ? `${WEB_SITE_URL.PRODUCTION}/api/v2`
-      : `${WEB_SITE_URL.DEVELOPMENT}/api/v2`,
+const API_URL =
+  process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION
+    ? `${API_URLS.PRODUCTION}`
+    : `${API_URLS.DEVELOPMENT}`;
+
+const MESSAGE_LISTENER_TYPES = {
+  PROCESS_VIDEO: 'process-video',
 };
 
 const DEPLOYMENT = 'DEPLOYMENT';
 
-export { DEPLOYMENT, URLS, ENVIRONMENTS, DOMAINS };
+export { DEPLOYMENT, API_URL, ENVIRONMENTS, MESSAGE_LISTENER_TYPES };

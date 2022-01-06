@@ -2,41 +2,18 @@
 // import '../img/48.png';
 // import '../img/128.png';
 
-const sendMessageToContentScript = (message: any) => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { ...message });
-  });
-};
+import { MESSAGE_LISTENER_TYPES } from './utils/constants';
+import { processVideo } from './utils/apiHelper';
 
-const sendMessageToRuntime = (message: any) => {
-  chrome.runtime.sendMessage({ ...message });
-};
+chrome.runtime.onMessage.addListener(
+  (message: any, sender: unknown, callback: (response: unknown) => void) => {
+    if (message.type === MESSAGE_LISTENER_TYPES.PROCESS_VIDEO) {
+      processVideo(message.data).then((response) => {
+        console.log(response);
+        callback(response);
+      });
+    }
 
-const openTab = (url: string) => {
-  //eslint-disable-next-line no-undef
-  chrome.tabs.create({
-    url,
-  });
-};
-
-const openTabInPopup = (url: string) => {
-  chrome.windows.create({
-    url: url,
-    focused: true,
-    type: 'popup',
-    height: Math.floor(window.screen.availHeight / 1.2),
-    width: Math.floor(window.screen.availWidth / 1.2),
-  });
-};
-
-const messageListener = (event: any, serder: any, callback: any) => {
-  switch (event.type) {
-    case 'openTab':
-      openTab(event.data.url);
-      break;
-  }
-};
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  messageListener(message, sender, sendResponse);
-});
+    return true;
+  },
+);

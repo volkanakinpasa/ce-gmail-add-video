@@ -2,6 +2,8 @@ const path = require('path');
 const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+// const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 const publicPath = '/';
 
@@ -22,15 +24,16 @@ const config = {
   output,
   module: {
     rules: [
-      // {
-      //   test: /\.css$/,
-      //   exclude: /node_modules/,
-      //   use: [
-      //     { loader: 'style-loader', options: { injectType: 'styleTag' } },
-      //     'css-loader',
-      //     'postcss-loader',
-      //   ],
-      // },
+      {
+        test: /\.scss$/,
+        exclude: /node_modules/,
+        use: [
+          { loader: 'style-loader', options: { injectType: 'styleTag' } },
+          'css-loader',
+          'sass-loader',
+          'postcss-loader',
+        ],
+      },
       {
         test: /\.css$/,
         exclude: /node_modules/,
@@ -61,8 +64,8 @@ const config = {
   },
   plugins: [
     // expose and write the allowed env vars on the compiled bundle
-    // new CleanWebpackPlugin(),
-    // new ProgressBarPlugin(),
+    new CleanWebpackPlugin(),
+    new ProgressBarPlugin(),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, '..', 'src', 'options.html'),
       filename: 'options.html',
@@ -89,5 +92,10 @@ const config = {
     }),
     // new BundleAnalyzerPlugin(),
   ],
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+    },
+  },
 };
 module.exports = config;

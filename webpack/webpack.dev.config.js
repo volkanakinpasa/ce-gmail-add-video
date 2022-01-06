@@ -1,6 +1,7 @@
 const { merge } = require('webpack-merge');
 const common = require('./webpack.common.config');
 const CopyPlugin = require('copy-webpack-plugin');
+
 const options = {
   watchOptions: {
     poll: true,

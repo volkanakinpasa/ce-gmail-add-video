@@ -21,5 +21,11 @@
   "externally_connectable": {
     "matches": []
   },
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';"
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+  "cross_origin_embedder_policy": {
+    "value": "require-corp"
+  },
+  "cross_origin_opener_policy": {
+    "value": "same-origin"
+  }
 }

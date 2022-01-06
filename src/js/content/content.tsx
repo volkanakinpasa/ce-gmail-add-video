@@ -6,6 +6,36 @@ declare global {
 }
 
 import './inboxsdk.js';
+import './content.scss';
+
+const createIframeElement = (popupId: string, composeId: number) => {
+  let iframe: HTMLIFrameElement = document.querySelector(`#${popupId}`);
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+  }
+
+  iframe.id = popupId;
+  iframe.setAttribute('frameborder', 'no');
+  iframe.setAttribute('scrolling', 'no');
+  iframe.className = 'ex-iframe';
+  iframe.src = chrome.extension.getURL('form.html?composeId=' + composeId);
+
+  return iframe;
+};
+
+const getComposeAreaElement = (composeViewElement: any) => {
+  return composeViewElement.querySelector('.GP');
+};
+const addButton = (composeView: any, callback: () => void) => {
+  composeView.addButton({
+    title: 'Add Video',
+    iconClass: 'gmail-add-video-button',
+    iconUrl: chrome.runtime.getURL('record.png'),
+    onClick: () => {
+      callback();
+    },
+  });
+};
 
 const loadInboxSDK = () => {
   (InboxSDK || window.InboxSDK)
@@ -13,30 +43,17 @@ const loadInboxSDK = () => {
     .then((sdk: any) => {
       sdk.Compose.registerComposeViewHandler(async (composeView: any) => {
         const composeId = new Date().getTime();
-        console.log(composeId);
-
-        const bodyElement = composeView.getBodyElement();
+        const popupId = 'ex-add-video' + composeId;
 
         const initializeFormContainer = () => {
-          const iframe = document.createElement('iframe');
-          iframe.setAttribute('allow', 'microphone *');
-          iframe.setAttribute('frameborder', 'no');
-          iframe.setAttribute('scrolling', 'no');
-          iframe.style.cssText = 'position: absolute;bottom: 56px;left: 0;';
-          iframe.src = chrome.extension.getURL(
-            'form.html?composeId=' + composeId,
+          const iframe = createIframeElement(popupId, composeId);
+          getComposeAreaElement(composeView.getElement()).appendChild(
+            iframe,
+            popupId,
           );
-          bodyElement.appendChild(iframe);
         };
 
-        composeView.addButton({
-          title: 'Add Video',
-          iconClass: 'gmail-voxbox-button',
-          iconUrl: chrome.runtime.getURL('record.png'),
-          onClick: function (event: any) {
-            initializeFormContainer();
-          },
-        });
+        addButton(composeView, () => initializeFormContainer());
 
         chrome.runtime.onMessage.addListener(async function (message: any) {});
 
