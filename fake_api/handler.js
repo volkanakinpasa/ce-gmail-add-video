@@ -9,9 +9,34 @@ const middlewares = jsonServer.defaults();
 server.use(middlewares);
 
 // Add custom routes before JSON Server router
-server.post('/campaigns/Test-Boys/receivers', (req, res) => {
+server.post('/campaigns/201/receivers', (req, res) => {
   res.statusCode = 201;
   res.jsonp([{}]);
+});
+
+server.get('/campaigns/201/receivers', (req, res) => {
+  res.statusCode = 200;
+  res.jsonp({
+    customer_id: '1',
+    video_url: 'https://www.youtube.com/watch?v=mHONNcZbwDY',
+    thumbnail_url:
+      'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png',
+    email_sent: true,
+    sms_sent: false,
+  });
+});
+
+server.post('/campaigns/500/receivers', (req, res) => {
+  throw 'thrown error';
+});
+
+server.post('/campaigns/400/receivers', (req, res) => {
+  res.statusCode = 400;
+  res.jsonp([
+    {
+      customer_id: ['A receiver with this ID already exists.'],
+    },
+  ]);
 });
 
 // To handle POST, PUT and PATCH you need to use a body-parser
