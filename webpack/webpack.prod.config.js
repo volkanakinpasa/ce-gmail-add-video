@@ -5,7 +5,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 const options = {
-  mode: 'production',
+  mode: process.env.NODE_ENV || 'production',
 
   plugins: [
     new CopyPlugin({
@@ -19,10 +19,10 @@ const options = {
   ],
   optimization: {
     minimizer: [
-      new OptimizeCSSAssetsPlugin({}),
-      new TerserPlugin({
-        extractComments: false,
-      }),
+      // new OptimizeCSSAssetsPlugin({}),
+      // new TerserPlugin({
+      //   extractComments: false,
+      // }),
     ],
   },
 };

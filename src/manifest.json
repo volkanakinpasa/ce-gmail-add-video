@@ -1,27 +1,32 @@
 {
   "manifest_version": 2,
-  "name": "GMAIL Add Video in Compose",
-  "short_name": "GMAIL Add Video in Compose",
-  "description": "GMAIL Add Video in Compose",
+  "name": "SEEN Sales Video",
+  "short_name": "SEEN Sales Video",
+  "description": "SEEN Sales Video",
   "version": "1.0.0",
-  "permissions": ["activeTab"],
+  "permissions": ["activeTab", "webRequest"],
   "content_scripts": [
     {
-      "matches": ["*://mail.google.com/*", "*://inbox.google.com/*"],
+      "matches": [
+        "*://mail.google.com/*",
+        "*://inbox.google.com/*",
+        "*://api.seen.io/*"
+      ],
       "js": ["content.bundle.js"],
       "run_at": "document_idle"
     }
   ],
-  "options_page": "options.html",
   "background": {
     "page": "background.html"
   },
-
+  "icons": {
+    "128": "media/128.png"
+  },
   "web_accessible_resources": ["*"],
   "externally_connectable": {
     "matches": []
   },
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+
   "cross_origin_embedder_policy": {
     "value": "require-corp"
   },

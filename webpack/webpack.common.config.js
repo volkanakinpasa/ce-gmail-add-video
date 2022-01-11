@@ -15,10 +15,17 @@ const output = {
 
 const config = {
   entry: {
-    options: path.join(__dirname, '..', 'src', 'js', 'option', 'index.tsx'),
+    // options: path.join(__dirname, '..', 'src', 'js', 'option', 'index.tsx'),
     background: path.join(__dirname, '..', 'src', 'js', 'background.ts'),
     content: path.join(__dirname, '..', 'src', 'js', 'content', 'content.tsx'),
-    form: path.join(__dirname, '..', 'src', 'js', 'content', 'form.tsx'),
+    formIframe: path.join(
+      __dirname,
+      '..',
+      'src',
+      'js',
+      'content',
+      'formIframe.tsx',
+    ),
   },
   target: 'web',
   output,
@@ -66,22 +73,29 @@ const config = {
     // expose and write the allowed env vars on the compiled bundle
     new CleanWebpackPlugin(),
     new ProgressBarPlugin(),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, '..', 'src', 'options.html'),
-      filename: 'options.html',
-      chunks: ['options'],
-    }),
+    // new HtmlWebpackPlugin({
+    //   template: path.join(__dirname, '..', 'src', 'options.html'),
+    //   filename: 'options.html',
+    //   chunks: ['options'],
+    // }),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, '..', 'src', 'background.html'),
       filename: 'background.html',
       chunks: ['background'],
     }),
     // new WriteFilePlugin(),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, '..', 'src', 'js', 'content', 'form.html'),
-      filename: 'form.html',
-      chunks: ['form'],
-    }),
+    // new HtmlWebpackPlugin({
+    //   template: path.join(
+    //     __dirname,
+    //     '..',
+    //     'src',
+    //     'js',
+    //     'content',
+    //     'formIframe.html',
+    //   ),
+    //   filename: 'formIframe.html',
+    //   chunks: ['formIframe'],
+    // }),
     new CopyPlugin({
       patterns: [
         {
@@ -92,10 +106,10 @@ const config = {
     }),
     // new BundleAnalyzerPlugin(),
   ],
-  optimization: {
-    splitChunks: {
-      chunks: 'all',
-    },
-  },
+  // optimization: {
+  //   splitChunks: {
+  //     chunks: 'all',
+  //   },
+  // },
 };
 module.exports = config;

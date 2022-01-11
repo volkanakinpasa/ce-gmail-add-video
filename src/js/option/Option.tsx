@@ -2,10 +2,10 @@ import './option.css';
 
 import React, { FC } from 'react';
 
-import Form from '../content/form/Index';
+import FormDialog from '../content/form/FormDialog';
 
 const Option: FC = () => {
-  return <Form />;
+  return <FormDialog />;
 };
 
 export default Option;

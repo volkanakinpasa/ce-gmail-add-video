@@ -1,6 +1,4 @@
-// import '../img/16.png';
-// import '../img/48.png';
-// import '../img/128.png';
+import '../img/128.png';
 
 import { getVideo, processVideo } from './utils/apiHelper';
 
@@ -16,6 +14,12 @@ const getActiveTab = (callback: any) => {
   });
 };
 
+const passMessageToContentScript = (message: any) => {
+  getActiveTab((tab: any) => {
+    sendMessageToContentScript({ ...message, tabId: tab.id });
+  });
+};
+
 chrome.runtime.onMessage.addListener(
   (message: any, sender: unknown, callback: (response: unknown) => void) => {
     if (message.type === MESSAGE_LISTENER_TYPES.PROCESS_VIDEO) {
@@ -26,7 +30,7 @@ chrome.runtime.onMessage.addListener(
       });
     } else if (message.type === MESSAGE_LISTENER_TYPES.GET_VIDEO) {
       const { data } = message;
-      getVideo(data.campaign, data.payload).then((response) => {
+      getVideo(data.customeId).then((response) => {
         console.log(response);
         callback(response);
       });
@@ -36,6 +40,14 @@ chrome.runtime.onMessage.addListener(
       });
     } else if (message.type === MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE) {
       sendMessageToContentScript(message);
+    } else if (message.type === MESSAGE_LISTENER_TYPES.SHOW_DIALOG) {
+      passMessageToContentScript(message);
+    } else if (message.type === MESSAGE_LISTENER_TYPES.HIDE_DIALOG) {
+      passMessageToContentScript(message);
+    } else if (
+      message.type === MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT
+    ) {
+      passMessageToContentScript(message);
     }
 
     return true;
