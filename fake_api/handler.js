@@ -9,25 +9,29 @@ const middlewares = jsonServer.defaults();
 server.use(middlewares);
 
 // Add custom routes before JSON Server router
-server.post('/campaigns/201/receivers', (req, res) => {
+server.post('/campaigns/Test-Boys/receivers', (req, res) => {
   res.statusCode = 201;
   res.jsonp([{}]);
 });
 
 //if there is  data
 
-server.get('/campaigns/200/receivers', (req, res) => {
+server.get('/campaigns/1/receivers', (req, res) => {
   res.statusCode = 200;
-  res.jsonp([
-    {
-      customer_id: '1',
-      video_url: 'https://www.youtube.com/watch?v=mHONNcZbwDY',
-      thumbnail_url:
-        'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png',
-      email_sent: true,
-      sms_sent: false,
-    },
-  ]);
+  res.jsonp({
+    records: [
+      {
+        fields: {
+          customer_id: '1',
+          video_url: 'https://www.youtube.com/watch?v=mHONNcZbwDY',
+          thumbnail_url:
+            'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png',
+          email_sent: true,
+          sms_sent: false,
+        },
+      },
+    ],
+  });
 });
 
 //if there is no data yet

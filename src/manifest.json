@@ -1,17 +1,20 @@
 {
   "manifest_version": 2,
-  "name": "SEEN Sales Video",
+  "name": "GMAIL - SEEN Sales Video",
   "short_name": "SEEN Sales Video",
   "description": "SEEN Sales Video",
   "version": "1.0.0",
-  "permissions": ["activeTab", "webRequest"],
+  "permissions": [
+    "activeTab",
+    "webRequest",
+    "webRequestBlocking",
+    "https://api.seen.io/*",
+    "https://api.storm121.com/*",
+    "*://mail.google.com/*"
+  ],
   "content_scripts": [
     {
-      "matches": [
-        "*://mail.google.com/*",
-        "*://inbox.google.com/*",
-        "*://api.seen.io/*"
-      ],
+      "matches": ["*://mail.google.com/*", "*://inbox.google.com/*"],
       "js": ["content.bundle.js"],
       "run_at": "document_idle"
     }
@@ -32,5 +35,6 @@
   },
   "cross_origin_opener_policy": {
     "value": "same-origin"
-  }
+  },
+  "content_security_policy": "script-src 'self' https://api.storm121.com; object-src 'self'"
 }

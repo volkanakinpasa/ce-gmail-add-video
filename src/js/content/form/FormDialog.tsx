@@ -1,6 +1,7 @@
 import {
   MESSAGE_LISTENER_TYPES,
   POLLING,
+  THUMBNAIL_IMAGE_URL,
   TIMEOUTS,
 } from '../../utils/constants';
 import { ProcessVideoMessage, ProcessedVideo } from '../../interfaces';
@@ -30,6 +31,14 @@ const FormDialog: FC = () => {
     setErrorMessage(message);
     await delay(ERROR_MESSAGE_AUTO_HIDE_TIMEOUT);
     setErrorMessage('');
+  };
+
+  const injectPlaceholder = (src: string): void => {
+    chrome.runtime.sendMessage({
+      type:
+        MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_REQUEST_SUCCESS_INJECT_PLACEHOLDER,
+      data: { src },
+    });
   };
 
   const reset = () => {
@@ -107,7 +116,10 @@ const FormDialog: FC = () => {
         break;
       }
     }
-    if (!found) setProcessMessage(`the video cannot be found`);
+    if (!found) {
+      setProcessMessage(`the video cannot be found`);
+      setShowForm(true);
+    }
     //if exists polling success
   };
 
@@ -131,9 +143,14 @@ const FormDialog: FC = () => {
           email: 'post@seen.io',
           phone: '+4700000000',
           customer_id: composeId,
+          extra_args: {},
         },
       ],
     };
+
+    // processVideo(data.campaign, data.payload).then((response: any) => {
+    //   console.log(response);
+    // });
 
     chrome.runtime.sendMessage(
       {
@@ -143,6 +160,7 @@ const FormDialog: FC = () => {
       (response: any) => {
         console.log(response);
         if (response.status === 201) {
+          injectPlaceholder(THUMBNAIL_IMAGE_URL);
           startPolling();
         } else if (response.status === 400) {
           showErrorMessage(response.data[0].customer_id);
@@ -171,7 +189,6 @@ const FormDialog: FC = () => {
         if (message.data.error) {
           setProcessMessage(message.data.error.message);
         } else if (message.data.success.injected) {
-          alert('injected');
           reset();
         }
       }

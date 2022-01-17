@@ -1,6 +1,8 @@
 import './inboxsdk.js';
 import './content.scss';
 
+import { createImage, createSpan } from '../utils/htmlHelper';
+
 import FormApp from './FormApp';
 import { MESSAGE_LISTENER_TYPES } from '../../js/utils/constants';
 import React from 'react';
@@ -14,7 +16,8 @@ declare global {
 }
 
 let tabId: string;
-
+const placeHolderId = 'seen-placeholder';
+const placeHolderImageId = 'seen-placeholder-image';
 const addButton = (composeView: any, callback: () => void) => {
   composeView.addButton({
     title: 'SEEN sales video',
@@ -86,44 +89,78 @@ const loadInboxSDK = () => {
 const injectVideoThumbLink = (campaign: any) => {
   if (campaign) {
     const linkElement: HTMLAnchorElement = document.createElement('a');
-    const imgElement: HTMLImageElement = document.createElement('img');
-    imgElement.src = campaign.thumbnail_url;
-    imgElement.style.cssText = 'max-width: 225px; height: auto;';
+    const imgElement = createImage({
+      src: campaign.thumbnail_url,
+    });
     linkElement.appendChild(imgElement);
-
     linkElement.href = campaign.video_url;
 
-    compose.composeView.insertHTMLIntoBodyAtCursor(linkElement);
+    const container = compose.composeView
+      .getBodyElement()
+      .querySelector(`.${placeHolderId}`);
+    if (container) {
+      container.innerHTML = '';
+      container.appendChild(linkElement);
+    } else {
+      compose.composeView.insertHTMLIntoBodyAtCursor(linkElement);
+    }
     return true;
   } else {
     return false;
   }
 };
 
+const videProcessingDone = (message: any) => {
+  if (message.tabId == tabId) {
+    const injected = injectVideoThumbLink(message.data.campaign);
+    if (injected) {
+      chrome.runtime.sendMessage({
+        type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT,
+        tabId,
+        data: { success: { injected: true } },
+      });
+    } else {
+      chrome.runtime.sendMessage({
+        type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT,
+        tabId,
+        data: {
+          error: {
+            message: 'Video Process is done but It cannot be injected',
+          },
+        },
+      });
+    }
+  }
+};
+
+const injectPlaceholder = (message: any) => {
+  const container = compose.composeView
+    .getBodyElement()
+    .querySelector(`.${placeHolderId}`);
+
+  if (container) return;
+
+  const span = createSpan({ id: placeHolderId, className: placeHolderId });
+  const img = createImage({
+    src: message.data.src,
+    id: placeHolderImageId,
+  });
+  span.appendChild(img);
+  compose.composeView.insertHTMLIntoBodyAtCursor(span);
+};
+
 const loadChromeListeners = () => {
   //todo: move this out
   chrome.runtime.onMessage.addListener((message: any) => {
-    if (message.type === MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE) {
-      if (message.tabId == tabId) {
-        const injected = injectVideoThumbLink(message.data.campaign);
-        if (injected) {
-          chrome.runtime.sendMessage({
-            type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT,
-            tabId,
-            data: { success: { injected: true } },
-          });
-        } else {
-          chrome.runtime.sendMessage({
-            type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT,
-            tabId,
-            data: {
-              error: {
-                message: 'Video Process is done but It cannot be injected',
-              },
-            },
-          });
-        }
-      }
+    switch (message.type) {
+      case MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE:
+        videProcessingDone(message);
+        break;
+      case MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_REQUEST_SUCCESS_INJECT_PLACEHOLDER:
+        injectPlaceholder(message);
+        break;
+      default:
+        break;
     }
   });
 };

@@ -1,10 +1,10 @@
 {
-  "name": "ce-gmail-add-video",
+  "name": "gmail-seen-videos",
   "version": "1.0.0",
-  "description": "ce-gmail-add-video",
+  "description": "Gmail Seen Videos",
   "scripts": {
     "fake-server": "node ./fake_api/handler.js",
-    "dev": "NODE_ENV=development concurrently \"webpack --watch --config webpack/webpack.dev.config.js\" ",
+    "dev": "NODE_ENV=development concurrently \"webpack --watch --config webpack/webpack.dev.config.js\"  \" npm run fake-server\" ",
     "build": "NODE_ENV=production webpack --config webpack/webpack.prod.config.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:fix": "eslint \"src/**/*.{js,jsx}\" --fix",
@@ -14,6 +14,8 @@
     "zip": "cd dist && zip -r package.zip ."
   },
   "dependencies": {
+    "dotenv-webpack": "^7.0.3",
+    "query-string": "^7.1.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-shadow": "^19.0.2",
@@ -42,6 +44,7 @@
     "core-js": "^3.8.3",
     "css-loader": "^3.6.0",
     "dart-sass": "^1.25.0",
+    "dotenv": "^12.0.3",
     "eslint": "^7.16.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.4.1",

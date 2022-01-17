@@ -3,32 +3,23 @@ const ENVIRONMENTS = {
   DEVELOPMENT: 'development',
 };
 
-const API_URLS = {
-  PRODUCTION: 'https://api.seen.io/v1',
-  DEVELOPMENT: 'https://api.seen.io/v1',
-};
-
-const API_PROCESSED_VIDEO_URLS = {
-  PRODUCTION:
-    'https://api.airtable.com/v0/appaqncMYF3YoWiOt/seenvideo?api_key=key49P15Fnr0YSdPt', //&filterByFormula=customer_id%3D%22day2%22
-  DEVELOPMENT:
-    'https://api.airtable.com/v0/appaqncMYF3YoWiOt/seenvideo?api_key=key49P15Fnr0YSdPt', //&filterByFormula=customer_id%3D%22day2%22
+const AIRTABLE = {
+  API_URL: 'https://api.airtable.com/v0/appaqncMYF3YoWiOt/seenvideo',
+  API_KEY_NAME: 'api_key',
+  API_KEY_VALUE: process.env.AIR_TABLE_API_KEY,
 };
 
 const API_URL =
   process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION
-    ? `${API_URLS.PRODUCTION}`
-    : `${API_URLS.DEVELOPMENT}`;
-
-const API_PROCESSED_VIDEO_URL =
-  process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION
-    ? `${API_PROCESSED_VIDEO_URLS.PRODUCTION}`
-    : `${API_PROCESSED_VIDEO_URLS.DEVELOPMENT}`;
+    ? 'https://api.storm121.com/v1'
+    : 'https://api.storm121.com/v1';
 
 const MESSAGE_LISTENER_TYPES = {
   PROCESS_VIDEO: 'process-video',
   GET_VIDEO: 'get-video',
   PROCESS_VIDEO_DONE: 'process-video-done',
+  PROCESS_VIDEO_REQUEST_SUCCESS_INJECT_PLACEHOLDER:
+    'PROCESS_VIDEO_REQUEST_SUCCESS_INJECT_PLACEHOLDER',
   PROCESS_VIDEO_DONE_INJECTED_OR_NOT: 'process-video-done-injected-or-not',
   GET_ACTIVE_TAB: 'get-active-tab',
   SHOW_DIALOG: 'show-dialog',
@@ -43,9 +34,12 @@ const TIMEOUTS = {
 const DEPLOYMENT = 'DEPLOYMENT';
 
 const POLLING = {
-  MAX_TRY: 2,
+  MAX_TRY: 1,
   TIMEOUT: 2000,
 };
+
+const THUMBNAIL_IMAGE_URL =
+  'https://scotturb.com/wp-content/uploads/2016/11/product-placeholder.jpg';
 
 export {
   DEPLOYMENT,
@@ -53,6 +47,7 @@ export {
   ENVIRONMENTS,
   MESSAGE_LISTENER_TYPES,
   TIMEOUTS,
-  API_PROCESSED_VIDEO_URL,
   POLLING,
+  THUMBNAIL_IMAGE_URL,
+  AIRTABLE,
 };

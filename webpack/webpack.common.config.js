@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 // const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const Dotenv = require('dotenv-webpack');
 
 const publicPath = '/';
 
@@ -72,6 +73,7 @@ const config = {
   plugins: [
     // expose and write the allowed env vars on the compiled bundle
     new CleanWebpackPlugin(),
+    new Dotenv(),
     new ProgressBarPlugin(),
     // new HtmlWebpackPlugin({
     //   template: path.join(__dirname, '..', 'src', 'options.html'),

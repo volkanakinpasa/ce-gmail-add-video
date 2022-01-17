@@ -4,6 +4,7 @@ interface ProcessVideoPayload {
   email: string;
   phone: string;
   customer_id: string;
+  extra_args: any;
 }
 interface GetVideoPayload {
   customer_id: string;

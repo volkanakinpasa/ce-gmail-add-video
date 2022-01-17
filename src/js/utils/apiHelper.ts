@@ -1,12 +1,30 @@
-import { API_PROCESSED_VIDEO_URL, API_URL } from './constants';
+import { API_URL, ENVIRONMENTS } from './constants';
 
 import { ProcessVideoPayload } from '../interfaces';
+import airTableHelper from './airTableHelper';
 
 const headers = {
+  //   Authorization: Token 5c5737b42ae2d0df38b15b3db4c7c0e519421b35
+  // Content-Type: application/json; charset=utf-8
+  // User-Agent: PostmanRuntime/7.28.4
+  // Accept: */*
+  // Postman-Token: f1d804be-38fe-45de-90c7-05468e525f86
+  // Host: api.storm121.com
+  // Accept-Encoding: gzip, deflate, br
+  // Connection: keep-alive
+  // Content-Length: 131
+
   'Content-Type': 'application/json; charset=utf-8',
   Authorization: 'Token 5c5737b42ae2d0df38b15b3db4c7c0e519421b35',
-  Host: 'api.seen.io',
+  Host: 'api.storm121.com',
 };
+
+const getPostUrl = () => API_URL;
+
+const getGetUrl = (customerId: string) =>
+  process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION
+    ? airTableHelper.createUrl(customerId)
+    : airTableHelper.createUrl(customerId);
 
 const processVideo = async (
   campaign: string,
@@ -15,7 +33,7 @@ const processVideo = async (
   let rawResponse;
   try {
     rawResponse = await fetch(
-      `${API_URL}/campaigns/${campaign.toLowerCase()}/receivers`,
+      `${getPostUrl()}/campaigns/${campaign}/receivers`,
       {
         method: 'POST',
         headers,
@@ -33,10 +51,7 @@ const processVideo = async (
 const getVideo = async (customerId: string): Promise<unknown> => {
   let rawResponse;
   try {
-    const searchParam = `filterByFormula=customer_id%3D%22${customerId}%22`;
-    const url = `${API_PROCESSED_VIDEO_URL}&${searchParam}`;
-
-    rawResponse = await fetch(url, {
+    rawResponse = await fetch(getGetUrl(customerId), {
       method: 'GET',
       headers,
     });
