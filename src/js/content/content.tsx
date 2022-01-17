@@ -71,11 +71,15 @@ const loadInboxSDK = () => {
         addButton(composeView, () => initializeFormContainer());
 
         composeView.on('discard', () => {
-          // todo: remove iframe
+          chrome.runtime.sendMessage({
+            type: MESSAGE_LISTENER_TYPES.HIDE_DIALOG,
+          });
         });
 
         composeView.on('destroy', () => {
-          // todo: remove iframe
+          chrome.runtime.sendMessage({
+            type: MESSAGE_LISTENER_TYPES.HIDE_DIALOG,
+          });
         });
       });
     });
