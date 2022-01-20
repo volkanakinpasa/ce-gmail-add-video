@@ -50,10 +50,7 @@ const loadInboxSDK = () => {
     .load(2, 'sdk_seen-videos_2696c219a1')
     .then((sdk: any) => {
       sdk.Compose.registerComposeViewHandler(async (composeView: any) => {
-        const composeId = new Date().getTime().toString();
-
         const initializeFormContainer = () => {
-          compose.id = composeId;
           compose.composeView = composeView;
 
           if (!tabId) {
@@ -64,10 +61,7 @@ const loadInboxSDK = () => {
           chrome.runtime.sendMessage({
             type: MESSAGE_LISTENER_TYPES.SHOW_DIALOG,
             tabId,
-            data: { composeId },
           });
-
-          console.log({ composeId, tabId });
         };
 
         setTabId();

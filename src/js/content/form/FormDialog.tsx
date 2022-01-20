@@ -75,11 +75,9 @@ const FormDialog: FC = () => {
   };
 
   const reset = () => {
-    setShowForm(false);
-    setShowDialog(false);
+    setShowForm(true);
+    setShowDialog(true);
     setCampaignName('');
-    setComposeId('');
-    setTabId('');
     setErrorMessage('');
     setSelectedCampaignSlug('');
     setFormFieldValues({});
@@ -90,6 +88,7 @@ const FormDialog: FC = () => {
     setProcessMessage('');
     setProcessFailed(false);
     reset();
+    setComposeId(new Date().getTime().toString());
   };
 
   const onPollingSuccess = (
@@ -157,6 +156,7 @@ const FormDialog: FC = () => {
       onPollingSuccess(processedCampaignVideo);
     } else {
       setProcessMessage(`the video cannot be found`);
+      setProcessFailed(true);
     }
   };
 
@@ -218,10 +218,13 @@ const FormDialog: FC = () => {
     chrome.runtime.onMessage.addListener(async (message) => {
       if (message.type === MESSAGE_LISTENER_TYPES.SHOW_DIALOG) {
         setShowDialog((dialog) => {
+          if (!dialog && !composeId) {
+            setComposeId(new Date().getTime().toString());
+          }
+
           return !dialog;
         });
 
-        if (message.data.composeId) setComposeId(message.data.composeId);
         if (message.tabId) setTabId(message.tabId);
       } else if (message.type === MESSAGE_LISTENER_TYPES.HIDE_DIALOG) {
         setShowDialog(false);
