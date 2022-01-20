@@ -27,15 +27,15 @@ const MESSAGE_LISTENER_TYPES = {
 const TIMEOUTS = {
   ERROR_MESSAGE_AUTO_HIDE_TIMEOUT: 5000,
   PRE_POLLING_WAIT_TIME: 60 * 1000 * 8, //8 mins
-  // PRE_POLLING_WAIT_TIME: 1000, //1 seconds
+  // PRE_POLLING_WAIT_TIME: 10000, //10 seconds
 };
 
 const DEPLOYMENT = 'DEPLOYMENT';
 
 const POLLING = {
   MAX_TRY: 30,
-  // MAX_TRY: 2,
   TIMEOUT: 60000, //1 min
+  // MAX_TRY: 2,
   // TIMEOUT: 3000, //1 min
 };
 

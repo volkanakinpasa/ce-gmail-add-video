@@ -17,8 +17,9 @@ declare global {
 }
 
 let tabId: string;
-const placeHolderId = 'seen-placeholder';
+const placeHolderId = 'seen-placeholder-container';
 const placeHolderImageId = 'seen-placeholder-image';
+
 const addButton = (composeView: any, callback: () => void) => {
   composeView.addButton({
     title: 'SEEN sales video',
@@ -100,12 +101,28 @@ const injectCampaignVideoLandingImgLink = (
     linkElement.appendChild(imgElement);
     linkElement.href = campaign.landing_page_url;
 
-    const container = compose.composeView
+    const containerFromPreviewCompose = compose.composeView
+      .getBodyElement()
+      .querySelector(`[id$='${placeHolderId}']`);
+
+    const imageFromPreviewCompose = compose.composeView
+      .getBodyElement()
+      .querySelector(`[id$='${placeHolderImageId}']`);
+
+    const containerRecentlyAdded = compose.composeView
       .getBodyElement()
       .querySelector(`.${placeHolderId}`);
-    if (container) {
-      container.innerHTML = '';
-      container.appendChild(linkElement);
+
+    if (containerFromPreviewCompose) {
+      containerFromPreviewCompose.innerHTML = '';
+      containerFromPreviewCompose.appendChild(linkElement);
+    } else if (imageFromPreviewCompose) {
+      const parentNode = containerFromPreviewCompose.parentNode;
+      parentNode.innerHTML = '';
+      parentNode.appendChild(linkElement);
+    } else if (containerRecentlyAdded) {
+      containerRecentlyAdded.innerHTML = '';
+      containerRecentlyAdded.appendChild(linkElement);
     } else {
       compose.composeView.insertHTMLIntoBodyAtCursor(linkElement);
     }
@@ -139,7 +156,29 @@ const videProcessingDone = (message: any) => {
   }
 };
 
+const deleteExistingPlaceholder = () => {
+  const containerFromPreviewCompose = compose.composeView
+    .getBodyElement()
+    .querySelector(`[id$='${placeHolderId}']`);
+
+  if (containerFromPreviewCompose) {
+    containerFromPreviewCompose.parentNode.removeChild(
+      containerFromPreviewCompose,
+    );
+  }
+
+  const imageFromPreviewCompose = compose.composeView
+    .getBodyElement()
+    .querySelector(`[id$='${placeHolderImageId}']`);
+
+  if (imageFromPreviewCompose) {
+    imageFromPreviewCompose.parentNode.removeChild(imageFromPreviewCompose);
+  }
+};
+
 const injectPlaceholder = (message: any) => {
+  deleteExistingPlaceholder();
+
   const container = compose.composeView
     .getBodyElement()
     .querySelector(`.${placeHolderId}`);

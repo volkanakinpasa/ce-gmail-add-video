@@ -91,6 +91,14 @@ const FormDialog: FC = () => {
     setComposeId(new Date().getTime().toString());
   };
 
+  const completed = () => {
+    setProcessMessage('');
+    setProcessFailed(false);
+    reset();
+    setComposeId('');
+    setShowDialog(false);
+  };
+
   const onPollingSuccess = (
     processedCampaignVideo: IProcessedCampaignVideo,
   ) => {
@@ -235,7 +243,7 @@ const FormDialog: FC = () => {
         if (message.data.error) {
           setProcessMessage(message.data.error.message);
         } else if (message.data.success.injected) {
-          resetWholeProcess();
+          completed();
         }
       }
     });

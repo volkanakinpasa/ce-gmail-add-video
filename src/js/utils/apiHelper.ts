@@ -14,6 +14,7 @@ const getCampaignVideoPostUrl = () => {
   if (NODE_ENV === ENVIRONMENTS.PRODUCTION) {
     return ZAPIER_POST_VIDEO_PROCESS_WEBHOOK_URL;
   } else {
+    // return ZAPIER_POST_VIDEO_PROCESS_WEBHOOK_URL;
     return LOCAL_API_CAMPAIGN_VIDEOS_POST_URL;
   }
 };
@@ -22,6 +23,7 @@ const getCampaignVideoUrl = (customerId: string) => {
   if (NODE_ENV === ENVIRONMENTS.PRODUCTION) {
     return airTableHelper.createGetCampaignVideosUrl(customerId);
   } else {
+    // return airTableHelper.createGetCampaignVideosUrl(customerId);
     return LOCAL_API_CAMPAIGN_VIDEOS_URL;
   }
 };
@@ -30,6 +32,7 @@ const getCampaignsUrl = () => {
   if (NODE_ENV === ENVIRONMENTS.PRODUCTION) {
     return airTableHelper.createGetCampaignsUrl();
   } else {
+    // return airTableHelper.createGetCampaignsUrl();
     return LOCAL_API_CAMPAIGNS_URL;
   }
 };
