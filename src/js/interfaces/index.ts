@@ -1,24 +1,31 @@
 interface ProcessVideoPayload {
   first_name: string;
   last_name: string;
-  email: string;
-  phone: string;
   customer_id: string;
   extra_args: any;
+}
+interface ICampaign {
+  campaign_slug: string;
+  campaign_name: string;
+  fields: string;
+  extra_fields?: string;
+  active: boolean;
+  last_modified_time?: Date;
+  token: string;
 }
 interface GetVideoPayload {
   customer_id: string;
 }
 
-interface ProcessedVideo {
+interface IProcessedCampaignVideo {
   customer_id: string;
-  video_url: string;
   thumbnail_url: string;
-  email_sent: boolean;
-  sms_sent: boolean;
+  email_thumbnail_url: string;
+  landing_page_url: string;
 }
 interface ProcessVideoMessage {
   campaign: string;
+  token: string;
   payload: ProcessVideoPayload[];
 }
 
@@ -32,5 +39,6 @@ export {
   ProcessVideoMessage,
   GetVideoMessage,
   GetVideoPayload,
-  ProcessedVideo,
+  IProcessedCampaignVideo,
+  ICampaign,
 };

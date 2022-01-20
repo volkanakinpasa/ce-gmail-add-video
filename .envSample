@@ -1,1 +1,9 @@
+AIR_TABLE_API_URL=
 AIR_TABLE_API_KEY=
+AIR_TABLE_CAMPAIGNS_TABLE_NAME=seen_campaings
+AIR_TABLE_VIDEOS_TABLE_NAME=seen_campaing_videos
+ZAPIER_POST_VIDEO_PROCESS_WEBHOOK_URL=
+THUMBNAIL_IMAGE_URL=https://scotturb.com/wp-content/uploads/2016/11/product-placeholder.jpg
+LOCAL_API_CAMPAIGNS_URL=http://localhost:5000/campaigns
+LOCAL_API_CAMPAIGN_VIDEOS_URL=http://localhost:5000/campaignvideos
+LOCAL_API_CAMPAIGN_VIDEOS_POST_URL=http://localhost:5000/campaignvideos

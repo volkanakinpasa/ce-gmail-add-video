@@ -4,6 +4,7 @@ import './content.scss';
 import { createImage, createSpan } from '../utils/htmlHelper';
 
 import FormApp from './FormApp';
+import { IProcessedCampaignVideo } from '../interfaces/index.js';
 import { MESSAGE_LISTENER_TYPES } from '../../js/utils/constants';
 import React from 'react';
 import { render } from 'react-dom';
@@ -50,10 +51,11 @@ const loadInboxSDK = () => {
     .then((sdk: any) => {
       sdk.Compose.registerComposeViewHandler(async (composeView: any) => {
         const composeId = new Date().getTime().toString();
-        compose.id = composeId;
-        compose.composeView = composeView;
 
         const initializeFormContainer = () => {
+          compose.id = composeId;
+          compose.composeView = composeView;
+
           if (!tabId) {
             alert('Can not read tabId. Please refresh the page');
             return;
@@ -61,7 +63,8 @@ const loadInboxSDK = () => {
 
           chrome.runtime.sendMessage({
             type: MESSAGE_LISTENER_TYPES.SHOW_DIALOG,
-            data: { composeId, tabId },
+            tabId,
+            data: { composeId },
           });
 
           console.log({ composeId, tabId });
@@ -73,12 +76,14 @@ const loadInboxSDK = () => {
         composeView.on('discard', () => {
           chrome.runtime.sendMessage({
             type: MESSAGE_LISTENER_TYPES.HIDE_DIALOG,
+            tabId,
           });
         });
 
         composeView.on('destroy', () => {
           chrome.runtime.sendMessage({
             type: MESSAGE_LISTENER_TYPES.HIDE_DIALOG,
+            tabId,
           });
         });
       });
@@ -90,14 +95,16 @@ const loadInboxSDK = () => {
   render(<FormApp />, window.document.getElementById(container.id));
 };
 
-const injectVideoThumbLink = (campaign: any) => {
+const injectCampaignVideoLandingImgLink = (
+  campaign: IProcessedCampaignVideo,
+) => {
   if (campaign) {
     const linkElement: HTMLAnchorElement = document.createElement('a');
     const imgElement = createImage({
-      src: campaign.thumbnail_url,
+      src: campaign.email_thumbnail_url,
     });
     linkElement.appendChild(imgElement);
-    linkElement.href = campaign.video_url;
+    linkElement.href = campaign.landing_page_url;
 
     const container = compose.composeView
       .getBodyElement()
@@ -116,7 +123,8 @@ const injectVideoThumbLink = (campaign: any) => {
 
 const videProcessingDone = (message: any) => {
   if (message.tabId == tabId) {
-    const injected = injectVideoThumbLink(message.data.campaign);
+    const injected = injectCampaignVideoLandingImgLink(message.data.campaign);
+
     if (injected) {
       chrome.runtime.sendMessage({
         type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT,

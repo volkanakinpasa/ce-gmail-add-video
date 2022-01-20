@@ -9,25 +9,25 @@ const middlewares = jsonServer.defaults();
 server.use(middlewares);
 
 // Add custom routes before JSON Server router
-server.post('/campaigns/Test-Boys/receivers', (req, res) => {
-  res.statusCode = 201;
+server.post('/campaignvideos', (req, res) => {
+  res.statusCode = 200;
   res.jsonp([{}]);
 });
 
 //if there is  data
 
-server.get('/campaigns/1/receivers', (req, res) => {
+server.get('/campaignvideos', (req, res) => {
   res.statusCode = 200;
   res.jsonp({
     records: [
       {
         fields: {
           customer_id: '1',
-          video_url: 'https://www.youtube.com/watch?v=mHONNcZbwDY',
           thumbnail_url:
-            'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png',
-          email_sent: true,
-          sms_sent: false,
+            'https://video.storm121.com/API-test/result/thumbnails/Volkan.mov.jpg',
+          email_thumbnail_url:
+            'https://video.storm121.com/API-test/result/thumbnails/Volkan.mov-mail.jpg',
+          landing_page_url: 'https://play.seen.io/v/9aiNN/',
         },
       },
     ],
@@ -35,22 +35,40 @@ server.get('/campaigns/1/receivers', (req, res) => {
 });
 
 //if there is no data yet
-server.get('/campaigns/404/receivers', (req, res) => {
+server.get('/campaigns', (req, res) => {
   res.statusCode = 200;
-  res.jsonp([]);
-});
-
-server.post('/campaigns/500/receivers', (req, res) => {
-  throw 'thrown error';
-});
-
-server.post('/campaigns/400/receivers', (req, res) => {
-  res.statusCode = 400;
-  res.jsonp([
-    {
-      customer_id: ['A receiver with this ID already exists.'],
-    },
-  ]);
+  res.jsonp({
+    records: [
+      {
+        id: 'recb5kdYm2zCRMhEP',
+        fields: {
+          campaign_name: 'Test-Boys',
+          token: 'Token 5c5737b42ae2d0df38b15b3db4c7c0e519421b35',
+          campaign_slug: 'Test-Boys',
+          active: true,
+          fields:
+            '[{"type":"text", "label_name":"Fist Name", "field_name" :"first_name", "default_value":""}]',
+          last_modified_time: '2022-01-20T10:14:48.000Z',
+        },
+        createdTime: '2022-01-19T12:41:55.000Z',
+      },
+      {
+        id: 'reczNz6ZwFpLGGOTV',
+        fields: {
+          campaign_name: 'Coop',
+          extra_fields:
+            '[{"type":"text", "label_name":"Age", "field_name" :"age", "default_value":""}]',
+          token: 'Token cb4aa50f16ea6ecb2b6775b155f675995084e045',
+          campaign_slug: 'seensales',
+          active: true,
+          fields:
+            '[{"type":"text", "label_name":"Fist Name", "field_name" :"first_name", "default_value":""},{"type":"text", "label_name":"Last Name", "field_name":"last_name", "default_value":""}]',
+          last_modified_time: '2022-01-20T10:13:59.000Z',
+        },
+        createdTime: '2022-01-19T12:41:55.000Z',
+      },
+    ],
+  });
 });
 
 // To handle POST, PUT and PATCH you need to use a body-parser

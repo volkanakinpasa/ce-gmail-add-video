@@ -6,10 +6,8 @@
   "version": "1.0.0",
   "permissions": [
     "activeTab",
-    "webRequest",
-    "webRequestBlocking",
-    "https://api.seen.io/*",
-    "https://api.storm121.com/*",
+    "*://hooks.zapier.com/*",
+    "*://api.airtable.com/*",
     "*://mail.google.com/*"
   ],
   "content_scripts": [
@@ -36,5 +34,5 @@
   "cross_origin_opener_policy": {
     "value": "same-origin"
   },
-  "content_security_policy": "script-src 'self' https://api.storm121.com; object-src 'self'"
+  "content_security_policy": "default-src 'self' http://localhost:5000 https://api.airtable.com https://hooks.zapier.com;"
 }

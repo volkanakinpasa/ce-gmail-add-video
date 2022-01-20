@@ -1,46 +1,56 @@
-import { API_URL, ENVIRONMENTS } from './constants';
+import {
+  ENVIRONMENTS,
+  LOCAL_API_CAMPAIGNS_URL,
+  LOCAL_API_CAMPAIGN_VIDEOS_POST_URL,
+  LOCAL_API_CAMPAIGN_VIDEOS_URL,
+  NODE_ENV,
+  ZAPIER_POST_VIDEO_PROCESS_WEBHOOK_URL,
+} from './constants';
 
 import { ProcessVideoPayload } from '../interfaces';
 import airTableHelper from './airTableHelper';
 
-const headers = {
-  //   Authorization: Token 5c5737b42ae2d0df38b15b3db4c7c0e519421b35
-  // Content-Type: application/json; charset=utf-8
-  // User-Agent: PostmanRuntime/7.28.4
-  // Accept: */*
-  // Postman-Token: f1d804be-38fe-45de-90c7-05468e525f86
-  // Host: api.storm121.com
-  // Accept-Encoding: gzip, deflate, br
-  // Connection: keep-alive
-  // Content-Length: 131
-
-  'Content-Type': 'application/json; charset=utf-8',
-  Authorization: 'Token 5c5737b42ae2d0df38b15b3db4c7c0e519421b35',
-  Host: 'api.storm121.com',
+const getCampaignVideoPostUrl = () => {
+  if (NODE_ENV === ENVIRONMENTS.PRODUCTION) {
+    return ZAPIER_POST_VIDEO_PROCESS_WEBHOOK_URL;
+  } else {
+    return LOCAL_API_CAMPAIGN_VIDEOS_POST_URL;
+  }
 };
 
-const getPostUrl = () => API_URL;
+const getCampaignVideoUrl = (customerId: string) => {
+  if (NODE_ENV === ENVIRONMENTS.PRODUCTION) {
+    return airTableHelper.createGetCampaignVideosUrl(customerId);
+  } else {
+    return LOCAL_API_CAMPAIGN_VIDEOS_URL;
+  }
+};
 
-const getGetUrl = (customerId: string) =>
-  process.env.NODE_ENV === ENVIRONMENTS.PRODUCTION
-    ? airTableHelper.createUrl(customerId)
-    : airTableHelper.createUrl(customerId);
+const getCampaignsUrl = () => {
+  if (NODE_ENV === ENVIRONMENTS.PRODUCTION) {
+    return airTableHelper.createGetCampaignsUrl();
+  } else {
+    return LOCAL_API_CAMPAIGNS_URL;
+  }
+};
 
 const processVideo = async (
   campaign: string,
+  token: string,
   payload: ProcessVideoPayload[],
 ): Promise<unknown> => {
   let rawResponse;
   try {
-    rawResponse = await fetch(
-      `${getPostUrl()}/campaigns/${campaign}/receivers`,
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
+    rawResponse = await fetch(`${getCampaignVideoPostUrl()}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        Authorization: token,
+        campaign: campaign,
       },
-    );
-    if (rawResponse.status === 201)
+      body: JSON.stringify(payload),
+    });
+    if (rawResponse.status === 200)
       return { status: rawResponse.status, data: await rawResponse.json() };
     else return { status: rawResponse.status, data: rawResponse.statusText };
   } catch (error) {
@@ -51,9 +61,8 @@ const processVideo = async (
 const getVideo = async (customerId: string): Promise<unknown> => {
   let rawResponse;
   try {
-    rawResponse = await fetch(getGetUrl(customerId), {
+    rawResponse = await fetch(getCampaignVideoUrl(customerId), {
       method: 'GET',
-      headers,
     });
 
     if (rawResponse.status === 200)
@@ -64,4 +73,19 @@ const getVideo = async (customerId: string): Promise<unknown> => {
   }
 };
 
-export { processVideo, getVideo };
+const getCampaigns = async (): Promise<unknown> => {
+  let rawResponse;
+  try {
+    rawResponse = await fetch(getCampaignsUrl(), {
+      method: 'GET',
+    });
+
+    if (rawResponse.status === 200)
+      return { status: rawResponse.status, data: await rawResponse.json() };
+    else return { status: rawResponse.status, data: rawResponse.statusText };
+  } catch (error) {
+    return { status: rawResponse.status, data: rawResponse.statusText };
+  }
+};
+
+export { processVideo, getVideo, getCampaigns };
