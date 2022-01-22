@@ -19,42 +19,46 @@ const getActiveTab = (callback: any) => {
 
 chrome.runtime.onMessage.addListener(
   (message: any, sender: unknown, callback: (response: unknown) => void) => {
-    if (message.type === MESSAGE_LISTENER_TYPES.PROCESS_VIDEO) {
-      const { data } = message;
-      processVideo(data.campaign, data.token, data.payload).then((response) => {
-        console.log(response);
-        callback(response);
-      });
-    } else if (message.type === MESSAGE_LISTENER_TYPES.GET_VIDEO) {
-      const { data } = message;
-      getVideo(data.customeId).then((response) => {
-        console.log(response);
-        callback(response);
-      });
-    } else if (message.type === MESSAGE_LISTENER_TYPES.GET_CAMPAIGNS) {
-      getCampaigns().then((response) => {
-        console.log('getCampaigns', response);
-        callback(response);
-      });
-    } else if (message.type === MESSAGE_LISTENER_TYPES.GET_ACTIVE_TAB) {
-      getActiveTab((tab: any) => {
-        callback(tab);
-      });
-    } else if (message.type === MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE) {
-      sendMessageToContentScript(message);
-    } else if (message.type === MESSAGE_LISTENER_TYPES.SHOW_DIALOG) {
-      sendMessageToContentScript(message);
-    } else if (message.type === MESSAGE_LISTENER_TYPES.HIDE_DIALOG) {
-      sendMessageToContentScript(message);
-    } else if (
-      message.type === MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT
-    ) {
-      sendMessageToContentScript(message);
-    } else if (
-      message.type ===
-      MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_REQUEST_SUCCESS_INJECT_PLACEHOLDER
-    ) {
-      sendMessageToContentScript(message);
+    const { data } = message;
+
+    switch (message.type) {
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_STARTED:
+        processVideo(data.campaign, data.token, data.payload).then(
+          (response) => {
+            callback(response);
+          },
+        );
+        sendMessageToContentScript(message);
+        break;
+
+      case MESSAGE_LISTENER_TYPES.GET_VIDEO:
+        getVideo(data.customeId).then((response) => {
+          callback(response);
+        });
+        break;
+      case MESSAGE_LISTENER_TYPES.GET_CAMPAIGNS:
+        getCampaigns().then((response) => {
+          callback(response);
+        });
+        break;
+      case MESSAGE_LISTENER_TYPES.GET_ACTIVE_TAB:
+        getActiveTab((tab: any) => {
+          callback(tab);
+        });
+        break;
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_IN_PROGRESS_INJECT_PLACEHOLDER:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_SUCCESS_VIDEO_INJECTED_OR_NOT:
+      case MESSAGE_LISTENER_TYPES.SHOW_DIALOG:
+      case MESSAGE_LISTENER_TYPES.HIDE_DIALOG:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_INIT:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_STARTED:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_IN_PROGRESS:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_DONE:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_SUCCESS:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_FAILED:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_CANCEL:
+        sendMessageToContentScript(message);
+        break;
     }
 
     return true;

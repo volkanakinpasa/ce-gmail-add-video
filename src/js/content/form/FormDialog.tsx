@@ -11,6 +11,7 @@ import {
 } from '../../utils/constants';
 import React, { FC, useEffect, useState } from 'react';
 
+import { CampaignState } from '../../enums';
 import classNames from 'classnames';
 import { delay } from '../../utils';
 import prettyMilliseconds from 'pretty-ms';
@@ -18,34 +19,64 @@ import root from 'react-shadow';
 import style from './style.css';
 import tailwindStle from '../../../css/tailwind.css';
 
-const defaultCampaignName = 'Test-Boys';
+interface IFormDialogProps {
+  campaignState: CampaignState;
+  tabId: string;
+}
 
-const FormDialog: FC = () => {
+const FormDialog = (props: IFormDialogProps): JSX.Element => {
+  const { campaignState, tabId } = props;
+
+  const [cancellationToken, setCancellationToken] = useState<any>({});
+  const [pollingCancellationToken, setPollingCancellationToken] = useState<any>(
+    {},
+  );
+
   const [showForm, setShowForm] = useState(false);
-  const [showDialog, setShowDialog] = useState(false);
-  const [campaignName, setCampaignName] = useState<string>(defaultCampaignName);
-  const [composeId, setComposeId] = useState<string>();
-  const [tabId, setTabId] = useState<string>();
-  const [errorMessage, setErrorMessage] = useState<string>();
+  // const [campaignState, setCampaignState] = useState<CampaignState>(
+  //   CampaignState.NONE,
+  // );
+  // const [showDialog, setShowDialog] = useState(false);
+  const [campaignName, setCampaignName] = useState<string>();
+  const [customerId, setCustomerId] = useState<string>();
+  // const [tabId, setTabId] = useState<string>();
+  // const [formMessage, setErrorMessage] = useState<string>();
+  const [message, setMessage] = useState<string>();
   const [campaigns, setCampaigns] = useState<ICampaign[]>();
   const [selectedCampaignSlug, setSelectedCampaignSlug] = useState<string>();
   const [formFieldValues, setFormFieldValues] = useState<any>({});
   const [formExtraFieldValues, setExtraFormFieldValues] = useState<any>({});
-  const [processMessage, setProcessMessage] = useState<string>();
+  // const [processMessage, setProcessMessage] = useState<string>();
   const [processFailed, setProcessFailed] = useState<boolean>(false);
 
   const { ERROR_MESSAGE_AUTO_HIDE_TIMEOUT, PRE_POLLING_WAIT_TIME } = TIMEOUTS;
 
-  const showErrorMessage = async (message: string) => {
-    setErrorMessage(message);
-    await delay(ERROR_MESSAGE_AUTO_HIDE_TIMEOUT);
-    setErrorMessage('');
+  const showMessage = async (
+    msg: string,
+    autohide?: boolean,
+  ): Promise<void> => {
+    setMessage(msg);
+
+    if (autohide) {
+      await delay(ERROR_MESSAGE_AUTO_HIDE_TIMEOUT, {});
+      setMessage('');
+    }
+  };
+
+  const updateCurrentCampaignState = (type: string) => {
+    chrome.runtime.sendMessage({
+      type: type,
+      tabId: tabId,
+    });
+  };
+
+  const cancel = () => {
+    updateCurrentCampaignState(MESSAGE_LISTENER_TYPES.CAMPAIGN_CANCEL);
   };
 
   const injectPlaceholder = (src: string): void => {
     chrome.runtime.sendMessage({
-      type:
-        MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_REQUEST_SUCCESS_INJECT_PLACEHOLDER,
+      type: MESSAGE_LISTENER_TYPES.CAMPAIGN_IN_PROGRESS_INJECT_PLACEHOLDER,
       data: { src },
       tabId,
     });
@@ -75,38 +106,41 @@ const FormDialog: FC = () => {
   };
 
   const reset = () => {
-    setShowForm(true);
-    setShowDialog(true);
+    // setShowForm(true);
+    // setShowDialog(true);
     setCampaignName('');
-    setErrorMessage('');
+    showMessage('');
     setSelectedCampaignSlug('');
     setFormFieldValues({});
     setExtraFormFieldValues({});
   };
 
   const resetWholeProcess = () => {
-    setProcessMessage('');
+    showMessage('');
     setProcessFailed(false);
     reset();
-    setComposeId(new Date().getTime().toString());
+    setCustomerId(new Date().getTime().toString());
   };
 
-  const completed = () => {
-    setProcessMessage('');
-    setProcessFailed(false);
-    reset();
-    setComposeId('');
-    setShowDialog(false);
-  };
+  // const completed = () => {
+  //   setTimeout(() => {
+  //     updateCurrentCampaignState(MESSAGE_LISTENER_TYPES.CAMPAIGN_SUCCESS);
+  //   }, 100);
+  //   // showMessage('');
+  //   // setProcessFailed(false);
+  //   // reset();
+  //   // setCustomerId('');
+  //   // // setShowDialog(false);
+  // };
 
   const onPollingSuccess = (
     processedCampaignVideo: IProcessedCampaignVideo,
   ) => {
     chrome.runtime.sendMessage({
-      type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE,
+      type: MESSAGE_LISTENER_TYPES.CAMPAIGN_DONE,
       tabId,
       data: {
-        composeId,
+        composeId: customerId,
         campaign: processedCampaignVideo,
       },
     });
@@ -114,36 +148,52 @@ const FormDialog: FC = () => {
 
   const startPolling = async () => {
     setShowForm(false);
-    setProcessMessage(
+    showMessage(
       `Request sent, Waiting for ${prettyMilliseconds(PRE_POLLING_WAIT_TIME)}`,
     );
 
-    await delay(PRE_POLLING_WAIT_TIME);
+    try {
+      await delay(PRE_POLLING_WAIT_TIME, cancellationToken);
+    } catch (error) {
+      console.log(error);
+      console.log('catch block cancelled');
+      return;
+    }
 
     const data = {
-      customeId: composeId,
+      customeId: customerId,
     };
 
     let response: any | null;
     let found = false;
     let processedCampaignVideo: IProcessedCampaignVideo;
 
-    for (let i = 0; i < POLLING.MAX_TRY; i++) {
-      setProcessMessage(`(${i + 1}) processing...`);
-      response = await new Promise<any | null>((resolve) => {
-        setTimeout(async () => {
+    let pollingTryCount = 0;
+    while (pollingTryCount < POLLING.MAX_TRY) {
+      pollingTryCount++;
+      console.log(pollingTryCount);
+      showMessage(
+        `(${pollingTryCount}) processing... waiting for ${prettyMilliseconds(
+          POLLING.TIMEOUT,
+        )}`,
+      );
+
+      try {
+        response = await new Promise<any | null>((resolve) => {
           chrome.runtime.sendMessage(
             {
               type: MESSAGE_LISTENER_TYPES.GET_VIDEO,
               data,
             },
             (response: any) => {
-              console.log(response);
               resolve(response);
             },
           );
-        }, POLLING.TIMEOUT);
-      });
+        });
+      } catch (error) {
+        console.log('polling block cancelled');
+        return;
+      }
 
       if (response.status === 200) {
         if (
@@ -159,23 +209,28 @@ const FormDialog: FC = () => {
       } else {
         break;
       }
+
+      if (pollingTryCount < POLLING.MAX_TRY)
+        await delay(POLLING.TIMEOUT, pollingCancellationToken);
     }
+
     if (found) {
       onPollingSuccess(processedCampaignVideo);
     } else {
-      setProcessMessage(`the video cannot be found`);
+      showMessage(`The video cannot be found`);
       setProcessFailed(true);
+      updateCurrentCampaignState(MESSAGE_LISTENER_TYPES.CAMPAIGN_FAILED);
     }
   };
 
   const submitHandler = () => {
-    if (!composeId) {
-      showErrorMessage('Form not loaded. Refresh this form');
+    if (!customerId) {
+      showMessage('Form not loaded. Refresh this form', true);
       return;
     }
 
     if (!campaignName) {
-      showErrorMessage('Select a campaign');
+      showMessage('Select a campaign', true);
       return;
     }
     const fields: any = {};
@@ -196,7 +251,7 @@ const FormDialog: FC = () => {
       token: campaign.token,
       payload: [
         {
-          customer_id: composeId,
+          customer_id: customerId,
           ...fields,
           extra_args: {
             ...extraFields,
@@ -207,54 +262,54 @@ const FormDialog: FC = () => {
 
     chrome.runtime.sendMessage(
       {
-        type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO,
+        type: MESSAGE_LISTENER_TYPES.CAMPAIGN_STARTED,
+        tabId,
         data,
       },
       (response: any) => {
-        console.log(response);
         if (response.status === 200) {
           injectPlaceholder(THUMBNAIL_IMAGE_URL);
+          updateCurrentCampaignState(
+            MESSAGE_LISTENER_TYPES.CAMPAIGN_IN_PROGRESS,
+          );
           startPolling();
         } else {
-          showErrorMessage('An error occurred while posting');
+          showMessage('An error occurred while posting');
+          updateCurrentCampaignState(MESSAGE_LISTENER_TYPES.CAMPAIGN_FAILED);
         }
       },
     );
   };
 
   useEffect(() => {
-    chrome.runtime.onMessage.addListener(async (message) => {
-      if (message.type === MESSAGE_LISTENER_TYPES.SHOW_DIALOG) {
-        setShowDialog((dialog) => {
-          if (!dialog && !composeId) {
-            setComposeId(new Date().getTime().toString());
+    chrome.runtime.onMessage.addListener(async (message: any) => {
+      switch (message.type) {
+        case MESSAGE_LISTENER_TYPES.CAMPAIGN_SUCCESS_VIDEO_INJECTED_OR_NOT:
+          if (message.data.error) {
+            showMessage(message.data.error.message);
+            setTimeout(() => {
+              updateCurrentCampaignState(
+                MESSAGE_LISTENER_TYPES.CAMPAIGN_FAILED,
+              );
+            }, 100);
           }
-
-          return !dialog;
-        });
-
-        if (message.tabId) setTabId(message.tabId);
-      } else if (message.type === MESSAGE_LISTENER_TYPES.HIDE_DIALOG) {
-        setShowDialog(false);
-      } else if (
-        message.type ===
-        MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT
-      ) {
-        if (message.data.error) {
-          setProcessMessage(message.data.error.message);
-        } else if (message.data.success.injected) {
-          completed();
-        }
+          break;
       }
     });
     getCampaigns();
-  }, []);
+    if (!customerId) setCustomerId(new Date().getTime().toString());
 
-  useEffect(() => {
-    if (composeId && tabId && campaigns) {
-      setShowForm(true);
-    }
-  }, [composeId, tabId, campaigns]);
+    return () => {
+      if (cancellationToken && cancellationToken.cancel instanceof Function)
+        cancellationToken.cancel();
+
+      if (
+        pollingCancellationToken &&
+        pollingCancellationToken.cancel instanceof Function
+      )
+        pollingCancellationToken.cancel();
+    };
+  }, []);
 
   const onCampaignChange = (e: any) => {
     setCampaignName(e.target.value);
@@ -264,8 +319,6 @@ const FormDialog: FC = () => {
   };
 
   const onFieldChange = (campaign: ICampaign, field: any, value: string) => {
-    console.log({ campaign, field, value });
-
     setFormFieldValues((currentValues: any) => {
       currentValues[field.field_name] = value;
       return currentValues;
@@ -277,8 +330,6 @@ const FormDialog: FC = () => {
     field: any,
     value: string,
   ) => {
-    console.log({ campaign, field, value });
-
     setExtraFormFieldValues((currentValues: any) => {
       currentValues[field.field_name] = value;
       return currentValues;
@@ -307,7 +358,7 @@ const FormDialog: FC = () => {
               key={`${campaign.campaign_slug}_${field.field_name}_${index}}`}
             >
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="shadow appearance-none border rounded w-full px-3 py-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id={field.field_name}
                 type="text"
                 placeholder={field.label_name}
@@ -360,19 +411,32 @@ const FormDialog: FC = () => {
       <style type="text/css">{style}</style>
       <div
         className={classNames(
-          { 'dialog-gmail-show': showDialog },
-          { 'dialog-gmail-hide': !showDialog },
+          { 'dialog-gmail-show': campaignState !== CampaignState.NONE },
+          { 'dialog-gmail-hide': campaignState == CampaignState.NONE },
           'dialog-gmail',
         )}
       >
         <div
           className={classNames(
-            { block: showForm },
-            { hidden: !showForm },
+            { block: campaignState === CampaignState.INIT },
+            { hidden: campaignState !== CampaignState.INIT },
             'bg-white',
           )}
         >
-          <div className="mb-2">SEEN Sales Video</div>
+          <div className="mb-2 flex justify-between items-center">
+            <div>SEEN Sales Video</div>
+            <div>
+              <button
+                className="font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="button"
+                onClick={() => {
+                  cancel();
+                }}
+              >
+                X
+              </button>
+            </div>
+          </div>
           <div className="mb-2">
             <select
               id="campaign"
@@ -403,28 +467,25 @@ const FormDialog: FC = () => {
               Insert
             </button>
           </div>
-
-          {errorMessage && (
-            <div className="mb-2 text-xs text-red-700">{errorMessage}</div>
-          )}
         </div>
-        <div>{processMessage}</div>
+
         <div>
           {processFailed && (
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="button"
-              onClick={() => {
-                resetWholeProcess();
-              }}
-            >
-              New(reset)
-            </button>
+            <>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="button"
+                onClick={() => {
+                  cancel();
+                }}
+              >
+                Close
+              </button>
+            </>
           )}
         </div>
-        <div className="py-4">
-          {composeId} - {tabId}
-        </div>
+        {message && <div className="mb-2 text-xs">{message}</div>}
+        <div className="pt-1 text-xs text-gray">customer id: {customerId}</div>
       </div>
     </root.div>
   );

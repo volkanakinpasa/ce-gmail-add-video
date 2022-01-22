@@ -16,17 +16,8 @@ const output = {
 
 const config = {
   entry: {
-    // options: path.join(__dirname, '..', 'src', 'js', 'option', 'index.tsx'),
     background: path.join(__dirname, '..', 'src', 'js', 'background.ts'),
     content: path.join(__dirname, '..', 'src', 'js', 'content', 'content.tsx'),
-    formIframe: path.join(
-      __dirname,
-      '..',
-      'src',
-      'js',
-      'content',
-      'formIframe.tsx',
-    ),
   },
   target: 'web',
   output,
@@ -75,11 +66,7 @@ const config = {
     new CleanWebpackPlugin(),
     new Dotenv(),
     new ProgressBarPlugin(),
-    // new HtmlWebpackPlugin({
-    //   template: path.join(__dirname, '..', 'src', 'options.html'),
-    //   filename: 'options.html',
-    //   chunks: ['options'],
-    // }),
+
     new HtmlWebpackPlugin({
       template: path.join(__dirname, '..', 'src', 'background.html'),
       filename: 'background.html',

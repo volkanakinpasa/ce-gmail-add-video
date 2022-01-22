@@ -3,10 +3,12 @@ import './content.scss';
 
 import { createImage, createSpan } from '../utils/htmlHelper';
 
+import { CampaignState } from '../enums/index';
 import FormApp from './FormApp';
-import { IProcessedCampaignVideo } from '../interfaces/index.js';
+import { IProcessedCampaignVideo } from '../interfaces/index';
 import { MESSAGE_LISTENER_TYPES } from '../../js/utils/constants';
 import React from 'react';
+import contentUtil from '../utils/contentUtil';
 import { render } from 'react-dom';
 
 declare global {
@@ -19,67 +21,98 @@ declare global {
 let tabId: string;
 const placeHolderId = 'seen-placeholder-container';
 const placeHolderImageId = 'seen-placeholder-image';
+let currentState: CampaignState = CampaignState.NONE;
 
-const addButton = (composeView: any, callback: () => void) => {
-  composeView.addButton({
-    title: 'SEEN sales video',
-    iconClass: 'gmail-add-video-button',
-    iconUrl: chrome.runtime.getURL('button-icon.png'),
-    onClick: () => {
-      callback();
-    },
-  });
+// const setTabId = async () => {
+//   tabId = await new Promise(async (resolve) => {
+//     chrome.runtime.sendMessage(
+//       {
+//         type: MESSAGE_LISTENER_TYPES.GET_ACTIVE_TAB,
+//       },
+//       (response: any) => {
+//         resolve(response.id);
+//       },
+//     );
+//   });
+// };
+
+const setCampaignState = (state: CampaignState): void => {
+  console.log(state.toString());
+
+  currentState = state;
 };
 
-const setTabId = async () => {
-  tabId = await new Promise(async (resolve) => {
-    chrome.runtime.sendMessage(
-      {
-        type: MESSAGE_LISTENER_TYPES.GET_ACTIVE_TAB,
-      },
-      (response: any) => {
-        resolve(response.id);
-      },
-    );
-  });
+const minimizeCompose = () => {
+  currentCampaingCompose.composeView.setMinimized(true);
 };
 
-const compose: { id?: string; composeView?: any } = {};
+const success = (): void => {
+  setCampaignState(CampaignState.NONE);
+  currentCampaingCompose.composeView.send();
+};
+
+const currentCampaingCompose: { id?: string; composeView?: any } = {};
 
 const loadInboxSDK = () => {
   (InboxSDK || window.InboxSDK)
     .load(2, 'sdk_seen-videos_2696c219a1')
     .then((sdk: any) => {
       sdk.Compose.registerComposeViewHandler(async (composeView: any) => {
-        const initializeFormContainer = () => {
-          compose.composeView = composeView;
+        const composeId = new Date().getTime().toString();
+
+        const onButtonClick = () => {
+          if (currentState == CampaignState.IN_PROGRESS) {
+            alert(
+              'Another video is still generating. Please wait until it’s finished',
+            );
+            return;
+          }
+          currentCampaingCompose.composeView = composeView;
+          currentCampaingCompose.id = composeId;
 
           if (!tabId) {
-            alert('Can not read tabId. Please refresh the page');
+            alert('Can not read GMAIL tabId. Please refresh the page');
             return;
           }
 
           chrome.runtime.sendMessage({
-            type: MESSAGE_LISTENER_TYPES.SHOW_DIALOG,
+            type: MESSAGE_LISTENER_TYPES.CAMPAIGN_INIT,
             tabId,
           });
         };
 
-        setTabId();
-        addButton(composeView, () => initializeFormContainer());
+        tabId = await contentUtil.setTabId();
+        contentUtil.injectButtonInBar(composeView, () => onButtonClick());
 
-        composeView.on('discard', () => {
-          chrome.runtime.sendMessage({
-            type: MESSAGE_LISTENER_TYPES.HIDE_DIALOG,
-            tabId,
-          });
+        composeView.on('discard', (): void => {
+          if (currentCampaingCompose.id == composeId) {
+            chrome.runtime.sendMessage({
+              type: MESSAGE_LISTENER_TYPES.CAMPAIGN_CANCEL,
+              tabId,
+            });
+          }
         });
 
-        composeView.on('destroy', () => {
-          chrome.runtime.sendMessage({
-            type: MESSAGE_LISTENER_TYPES.HIDE_DIALOG,
-            tabId,
-          });
+        composeView.on('destroy', (): void => {
+          if (currentCampaingCompose.id == composeId) {
+            chrome.runtime.sendMessage({
+              type: MESSAGE_LISTENER_TYPES.CAMPAIGN_CANCEL,
+              tabId,
+            });
+          }
+        });
+
+        composeView.on('presending', (e: any) => {
+          if (
+            currentState == CampaignState.IN_PROGRESS ||
+            currentState == CampaignState.STARTED ||
+            currentState == CampaignState.DONE
+          ) {
+            alert('Video is still generating. Please wait until it’s finished');
+
+            e.cancel();
+            return;
+          }
         });
       });
     });
@@ -101,15 +134,15 @@ const injectCampaignVideoLandingImgLink = (
     linkElement.appendChild(imgElement);
     linkElement.href = campaign.landing_page_url;
 
-    const containerFromPreviewCompose = compose.composeView
+    const containerFromPreviewCompose = currentCampaingCompose.composeView
       .getBodyElement()
       .querySelector(`[id$='${placeHolderId}']`);
 
-    const imageFromPreviewCompose = compose.composeView
+    const imageFromPreviewCompose = currentCampaingCompose.composeView
       .getBodyElement()
       .querySelector(`[id$='${placeHolderImageId}']`);
 
-    const containerRecentlyAdded = compose.composeView
+    const containerRecentlyAdded = currentCampaingCompose.composeView
       .getBodyElement()
       .querySelector(`.${placeHolderId}`);
 
@@ -124,7 +157,9 @@ const injectCampaignVideoLandingImgLink = (
       containerRecentlyAdded.innerHTML = '';
       containerRecentlyAdded.appendChild(linkElement);
     } else {
-      compose.composeView.insertHTMLIntoBodyAtCursor(linkElement);
+      currentCampaingCompose.composeView.insertHTMLIntoBodyAtCursor(
+        linkElement,
+      );
     }
     return true;
   } else {
@@ -138,13 +173,12 @@ const videProcessingDone = (message: any) => {
 
     if (injected) {
       chrome.runtime.sendMessage({
-        type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT,
+        type: MESSAGE_LISTENER_TYPES.CAMPAIGN_SUCCESS,
         tabId,
-        data: { success: { injected: true } },
       });
     } else {
       chrome.runtime.sendMessage({
-        type: MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE_INJECTED_OR_NOT,
+        type: MESSAGE_LISTENER_TYPES.CAMPAIGN_SUCCESS_VIDEO_INJECTED_OR_NOT,
         tabId,
         data: {
           error: {
@@ -157,7 +191,7 @@ const videProcessingDone = (message: any) => {
 };
 
 const deleteExistingPlaceholder = () => {
-  const containerFromPreviewCompose = compose.composeView
+  const containerFromPreviewCompose = currentCampaingCompose.composeView
     .getBodyElement()
     .querySelector(`[id$='${placeHolderId}']`);
 
@@ -167,7 +201,7 @@ const deleteExistingPlaceholder = () => {
     );
   }
 
-  const imageFromPreviewCompose = compose.composeView
+  const imageFromPreviewCompose = currentCampaingCompose.composeView
     .getBodyElement()
     .querySelector(`[id$='${placeHolderImageId}']`);
 
@@ -179,7 +213,7 @@ const deleteExistingPlaceholder = () => {
 const injectPlaceholder = (message: any) => {
   deleteExistingPlaceholder();
 
-  const container = compose.composeView
+  const container = currentCampaingCompose.composeView
     .getBodyElement()
     .querySelector(`.${placeHolderId}`);
 
@@ -191,18 +225,37 @@ const injectPlaceholder = (message: any) => {
     id: placeHolderImageId,
   });
   span.appendChild(img);
-  compose.composeView.insertHTMLIntoBodyAtCursor(span);
+  currentCampaingCompose.composeView.insertHTMLIntoBodyAtCursor(span);
 };
 
 const loadChromeListeners = () => {
   //todo: move this out
   chrome.runtime.onMessage.addListener((message: any) => {
     switch (message.type) {
-      case MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_DONE:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_INIT:
+        setCampaignState(CampaignState.INIT);
+        break;
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_STARTED:
+        setCampaignState(CampaignState.STARTED);
+        injectPlaceholder(message);
+        minimizeCompose();
+        break;
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_IN_PROGRESS:
+        setCampaignState(CampaignState.IN_PROGRESS);
+        break;
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_DONE:
+        setCampaignState(CampaignState.DONE);
         videProcessingDone(message);
         break;
-      case MESSAGE_LISTENER_TYPES.PROCESS_VIDEO_REQUEST_SUCCESS_INJECT_PLACEHOLDER:
-        injectPlaceholder(message);
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_SUCCESS:
+        setCampaignState(CampaignState.SUCCESS);
+        success();
+        break;
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_FAILED:
+        setCampaignState(CampaignState.FAILED);
+        break;
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_CANCEL:
+        setCampaignState(CampaignState.CANCEL);
         break;
       default:
         break;
