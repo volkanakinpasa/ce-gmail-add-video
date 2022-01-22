@@ -149,7 +149,11 @@ const FormDialog = (props: IFormDialogProps): JSX.Element => {
   const startPolling = async () => {
     setShowForm(false);
     showMessage(
-      `Request sent, Waiting for ${prettyMilliseconds(PRE_POLLING_WAIT_TIME)}`,
+      `Video is generating, please wait…
+
+      Don’t close the Gmail tab until the generation is complete.
+      
+      Waiting for ${prettyMilliseconds(PRE_POLLING_WAIT_TIME)}`,
     );
 
     try {
