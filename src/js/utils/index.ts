@@ -3,7 +3,10 @@ const consoleLog = (data: any): void => {
   console.log(data);
   console.log('%c----------------GMAIL EXT----------------', 'color:green');
 };
-const delay = (ms: number, cancellationToken: any): Promise<NodeJS.Timeout> => {
+const delay = (
+  ms: number,
+  cancellationToken: any = {},
+): Promise<NodeJS.Timeout> => {
   return new Promise((resolve, reject) => {
     cancellationToken.cancel = function () {
       reject();

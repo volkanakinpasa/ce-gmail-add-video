@@ -9,7 +9,7 @@ import {
   THUMBNAIL_IMAGE_URL,
   TIMEOUTS,
 } from '../../utils/constants';
-import React, { FC, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { CampaignState } from '../../enums';
 import classNames from 'classnames';
@@ -33,20 +33,13 @@ const FormDialog = (props: IFormDialogProps): JSX.Element => {
   );
 
   const [showForm, setShowForm] = useState(false);
-  // const [campaignState, setCampaignState] = useState<CampaignState>(
-  //   CampaignState.NONE,
-  // );
-  // const [showDialog, setShowDialog] = useState(false);
   const [campaignName, setCampaignName] = useState<string>();
   const [customerId, setCustomerId] = useState<string>();
-  // const [tabId, setTabId] = useState<string>();
-  // const [formMessage, setErrorMessage] = useState<string>();
   const [message, setMessage] = useState<string>();
   const [campaigns, setCampaigns] = useState<ICampaign[]>();
   const [selectedCampaignSlug, setSelectedCampaignSlug] = useState<string>();
   const [formFieldValues, setFormFieldValues] = useState<any>({});
   const [formExtraFieldValues, setExtraFormFieldValues] = useState<any>({});
-  // const [processMessage, setProcessMessage] = useState<string>();
   const [processFailed, setProcessFailed] = useState<boolean>(false);
 
   const { ERROR_MESSAGE_AUTO_HIDE_TIMEOUT, PRE_POLLING_WAIT_TIME } = TIMEOUTS;
@@ -99,39 +92,11 @@ const FormDialog = (props: IFormDialogProps): JSX.Element => {
 
           setCampaigns(list.map((item: any) => item.fields));
         } else {
-          //todo: show error
+          console.log('cannot get campaigns');
         }
       },
     );
   };
-
-  const reset = () => {
-    // setShowForm(true);
-    // setShowDialog(true);
-    setCampaignName('');
-    showMessage('');
-    setSelectedCampaignSlug('');
-    setFormFieldValues({});
-    setExtraFormFieldValues({});
-  };
-
-  const resetWholeProcess = () => {
-    showMessage('');
-    setProcessFailed(false);
-    reset();
-    setCustomerId(new Date().getTime().toString());
-  };
-
-  // const completed = () => {
-  //   setTimeout(() => {
-  //     updateCurrentCampaignState(MESSAGE_LISTENER_TYPES.CAMPAIGN_SUCCESS);
-  //   }, 100);
-  //   // showMessage('');
-  //   // setProcessFailed(false);
-  //   // reset();
-  //   // setCustomerId('');
-  //   // // setShowDialog(false);
-  // };
 
   const onPollingSuccess = (
     processedCampaignVideo: IProcessedCampaignVideo,
@@ -222,7 +187,6 @@ const FormDialog = (props: IFormDialogProps): JSX.Element => {
       onPollingSuccess(processedCampaignVideo);
     } else {
       showMessage(`The video cannot be found`);
-      setProcessFailed(true);
       updateCurrentCampaignState(MESSAGE_LISTENER_TYPES.CAMPAIGN_FAILED);
     }
   };
@@ -420,6 +384,20 @@ const FormDialog = (props: IFormDialogProps): JSX.Element => {
           'dialog-gmail',
         )}
       >
+        <div className="mb-2 flex justify-between items-center">
+          <div>SEEN Sales Video</div>
+          <div>
+            <button
+              className="font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              type="button"
+              onClick={() => {
+                cancel();
+              }}
+            >
+              X
+            </button>
+          </div>
+        </div>
         <div
           className={classNames(
             { block: campaignState === CampaignState.INIT },
@@ -427,20 +405,6 @@ const FormDialog = (props: IFormDialogProps): JSX.Element => {
             'bg-white',
           )}
         >
-          <div className="mb-2 flex justify-between items-center">
-            <div>SEEN Sales Video</div>
-            <div>
-              <button
-                className="font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="button"
-                onClick={() => {
-                  cancel();
-                }}
-              >
-                X
-              </button>
-            </div>
-          </div>
           <div className="mb-2">
             <select
               id="campaign"
@@ -472,9 +436,9 @@ const FormDialog = (props: IFormDialogProps): JSX.Element => {
             </button>
           </div>
         </div>
-
+        {message && <div className="mb-2">{message}</div>}
         <div>
-          {processFailed && (
+          {campaignState === CampaignState.FAILED && (
             <>
               <button
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -488,8 +452,6 @@ const FormDialog = (props: IFormDialogProps): JSX.Element => {
             </>
           )}
         </div>
-        {message && <div className="mb-2 text-xs">{message}</div>}
-        <div className="pt-1 text-xs text-gray">customer id: {customerId}</div>
       </div>
     </root.div>
   );

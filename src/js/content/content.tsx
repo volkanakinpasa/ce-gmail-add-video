@@ -9,6 +9,7 @@ import { IProcessedCampaignVideo } from '../interfaces/index';
 import { MESSAGE_LISTENER_TYPES } from '../../js/utils/constants';
 import React from 'react';
 import contentUtil from '../utils/contentUtil';
+import { delay } from '../utils/index';
 import { render } from 'react-dom';
 
 declare global {
@@ -22,19 +23,6 @@ let tabId: string;
 const placeHolderId = 'seen-placeholder-container';
 const placeHolderImageId = 'seen-placeholder-image';
 let currentState: CampaignState = CampaignState.NONE;
-
-// const setTabId = async () => {
-//   tabId = await new Promise(async (resolve) => {
-//     chrome.runtime.sendMessage(
-//       {
-//         type: MESSAGE_LISTENER_TYPES.GET_ACTIVE_TAB,
-//       },
-//       (response: any) => {
-//         resolve(response.id);
-//       },
-//     );
-//   });
-// };
 
 const setCampaignState = (state: CampaignState): void => {
   console.log(state.toString());
@@ -103,15 +91,19 @@ const loadInboxSDK = () => {
         });
 
         composeView.on('presending', (e: any) => {
-          if (
-            currentState == CampaignState.IN_PROGRESS ||
-            currentState == CampaignState.STARTED ||
-            currentState == CampaignState.DONE
-          ) {
-            alert('Video is still generating. Please wait until it’s finished');
+          if (currentCampaingCompose.id == composeId) {
+            if (
+              currentState == CampaignState.IN_PROGRESS ||
+              currentState == CampaignState.STARTED ||
+              currentState == CampaignState.DONE
+            ) {
+              alert(
+                'Video is still generating. Please wait until it’s finished',
+              );
 
-            e.cancel();
-            return;
+              e.cancel();
+              return;
+            }
           }
         });
       });
@@ -229,16 +221,13 @@ const injectPlaceholder = (message: any) => {
 };
 
 const loadChromeListeners = () => {
-  //todo: move this out
-  chrome.runtime.onMessage.addListener((message: any) => {
+  chrome.runtime.onMessage.addListener(async (message: any) => {
     switch (message.type) {
       case MESSAGE_LISTENER_TYPES.CAMPAIGN_INIT:
         setCampaignState(CampaignState.INIT);
         break;
       case MESSAGE_LISTENER_TYPES.CAMPAIGN_STARTED:
         setCampaignState(CampaignState.STARTED);
-        injectPlaceholder(message);
-        minimizeCompose();
         break;
       case MESSAGE_LISTENER_TYPES.CAMPAIGN_IN_PROGRESS:
         setCampaignState(CampaignState.IN_PROGRESS);
@@ -257,7 +246,10 @@ const loadChromeListeners = () => {
       case MESSAGE_LISTENER_TYPES.CAMPAIGN_CANCEL:
         setCampaignState(CampaignState.CANCEL);
         break;
-      default:
+      case MESSAGE_LISTENER_TYPES.CAMPAIGN_IN_PROGRESS_INJECT_PLACEHOLDER:
+        injectPlaceholder(message);
+        await delay(1000);
+        minimizeCompose();
         break;
     }
   });
@@ -268,4 +260,4 @@ const onLoad = () => {
   loadChromeListeners();
 };
 
-window.addEventListener('load', onLoad, false);
+onLoad();
